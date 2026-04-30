@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WIM Kit and Modem Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body,div,span,td,th,input,select,button,textarea,pre,a{font-family:Tahoma,Geneva,sans-serif;}
+:root{
+  --bg:#0d0d0f;--bg2:#141418;--bg3:#1e1e24;--bg4:#28282f;
+  --border:#3a3a48;--border2:#50505f;
+  --text:#ffffff;--text2:#ccccdd;--text3:#9090a8;
+  --accent:#5b9cf6;--accent2:#4a8ae0;
+  --warn:#ffb84d;--danger-text:#ff7070;--danger-border:#6a3535;
+}
+body{background:var(--bg);color:var(--text);padding:12px;}
+.tabs{display:flex;border-bottom:1px solid var(--border2);margin-bottom:12px;}
+.tab-btn{padding:8px 18px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-size:13px;font-family:Tahoma,sans-serif;color:var(--text3);font-weight:600;}
+.tab-btn.active{color:#fff;border-bottom:2px solid var(--accent);}
+.tab-btn:hover:not(.active){color:var(--text2);}
+.tab-pane{display:none;}.tab-pane.active{display:block;}
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.toolbar select,.toolbar input{font-size:12px;padding:5px 9px;border:1px solid var(--border2);border-radius:5px;background:var(--bg3);color:#fff;font-family:Tahoma,sans-serif;}
+.toolbar select option{background:var(--bg3);color:#fff;}
+button.primary{background:var(--accent);color:#fff;border:none;padding:6px 13px;border-radius:5px;cursor:pointer;font-size:12px;font-family:Tahoma,sans-serif;font-weight:700;}
+button.primary:hover{background:var(--accent2);}
+button.secondary{background:var(--bg3);border:1px solid var(--border2);padding:5px 10px;border-radius:5px;cursor:pointer;font-size:12px;font-family:Tahoma,sans-serif;color:#fff;}
+button.secondary:hover{background:var(--bg4);}
+button.sm{padding:3px 8px;font-size:11px;}
+button.danger{background:none;border:1px solid var(--danger-border);padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-family:Tahoma,sans-serif;color:var(--danger-text);}
+button.danger:hover{background:#2a1515;}
+.tbl-wrap{border-radius:7px;border:1px solid var(--border2);background:var(--bg2);overflow-x:auto;}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{text-align:left;padding:8px 11px;font-weight:700;font-size:11px;color:var(--text3);border-bottom:1px solid var(--border2);background:var(--bg3);white-space:nowrap;text-transform:uppercase;letter-spacing:0.05em;}
+.tbl td{padding:7px 11px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text2);}
+.tbl td.bold{color:#fff;font-weight:700;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:#1a1a22;}
+.tbl tr.shipped td{color:#555566;background:#111115;}
+.tbl tr.shipped td.bold{color:#6a6a88;}
+.tbl tr.shipped:hover td{background:#141418;}
+.tbl tr.installed td{color:#555566;background:#111115;}
+.tbl tr.installed td.bold{color:#6a6a88;}
+.tbl tr.installed:hover td{background:#141418;}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.badge-bom{background:#1a3a6a;color:#7ec8ff;border:1px solid #2a5aaa;}
+.badge-approved{background:#3a2a00;color:#ffd060;border:1px solid #7a5a00;}
+.badge-ordered{background:#2a1a5a;color:#c0a8ff;border:1px solid #5a3aaa;}
+.badge-pulled{background:#0a3020;color:#50e898;border:1px solid #1a7040;}
+.badge-config{background:#3a2500;color:#ffbb44;border:1px solid #886000;}
+.badge-ready{background:#0a3a18;color:#44ff88;border:1px solid #1a8040;}
+.badge-shipped{background:#252530;color:#6a6a88;border:1px solid #353548;}
+.badge-field{background:#0a3a18;color:#44ff88;border:1px solid #1a8040;}
+.badge-relocated{background:#2a1a5a;color:#c0a8ff;border:1px solid #5a3aaa;}
+.badge-returned{background:#252530;color:#b0b0cc;border:1px solid #454558;}
+.badge-installed{background:#1a3a2a;color:#50e898;border:1px solid #1a6040;}
+.summary-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:10px;}
+.summary-card{background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:9px 11px;}
+.summary-card .num{font-size:22px;font-weight:700;line-height:1;color:#fff;}
+.summary-card .num.warn{color:var(--warn);}
+.summary-card .lbl{font-size:10px;color:var(--text3);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;}
+.notify-bar{background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 12px;margin-bottom:10px;font-size:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.notify-bar .label{color:var(--text3);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;}
+.notify-btn{font-size:12px;padding:4px 11px;border-radius:5px;border:1px solid var(--border2);background:var(--bg4);cursor:pointer;color:#fff;font-family:Tahoma,sans-serif;font-weight:600;}
+.notify-btn:hover{background:var(--bg3);border-color:var(--accent);}
+.status-select{font-size:11px;padding:3px 6px;border:1px solid var(--border2);border-radius:5px;background:var(--bg3);color:#fff;cursor:pointer;font-family:Tahoma,sans-serif;}
+.status-select option{background:var(--bg3);}
+.actions-cell{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.empty-state{text-align:center;padding:2rem;color:var(--text3);font-size:13px;font-weight:600;background:var(--bg2);}
+.relocated-flag{font-size:10px;color:var(--warn);margin-top:2px;font-weight:700;}
+.missing-serial{font-size:10px;color:var(--warn);margin-top:2px;font-weight:700;}
+.mono{font-family:'Courier New',monospace;font-size:11px;color:#fff;}
+.snow-link{color:var(--accent);text-decoration:none;font-size:12px;font-weight:700;}
+.snow-link:hover{text-decoration:underline;}
+.snow-nolink{color:var(--text2);font-size:12px;}
+.ups-link{color:#ffb84d;text-decoration:none;font-size:11px;font-weight:700;font-family:'Courier New',monospace;}
+.ups-link:hover{text-decoration:underline;}
+.toggle-label{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;}
+.toggle-label input{cursor:pointer;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;z-index:200;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--bg2);border-radius:10px;border:1px solid var(--border2);padding:1.25rem;width:490px;max-width:95vw;max-height:90vh;overflow-y:auto;}
+.modal-box h3{font-size:14px;font-weight:700;margin-bottom:1rem;color:#fff;}
+.field-row{margin-bottom:10px;}
+.field-row label{display:block;font-size:11px;color:var(--text3);margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;}
+.field-row input,.field-row select,.field-row textarea{width:100%;padding:7px 9px;border:1px solid var(--border2);border-radius:5px;font-size:13px;background:var(--bg3);color:#fff;font-family:Tahoma,sans-serif;}
+.field-row input:focus,.field-row select:focus,.field-row textarea:focus{outline:none;border-color:var(--accent);}
+.field-row textarea{height:56px;resize:vertical;}
+.field-hint{font-size:10px;color:var(--text3);margin-top:3px;line-height:1.4;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.section-divider{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);padding-bottom:5px;margin:14px 0 10px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:1rem;padding-top:10px;border-top:1px solid var(--border);}
+.notify-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;z-index:300;}
+.notify-overlay.open{display:flex;}
+.notify-box{background:var(--bg2);border-radius:10px;border:1px solid var(--border2);padding:1.25rem;width:500px;max-width:95vw;max-height:88vh;overflow-y:auto;}
+.notify-box h3{font-size:14px;font-weight:700;margin-bottom:10px;color:#fff;}
+.section-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px;}
+pre.msg-box{background:var(--bg3);border-radius:5px;padding:10px 12px;font-size:12px;white-space:pre-wrap;font-family:'Courier New',monospace;border:1px solid var(--border2);margin-bottom:12px;color:#fff;line-height:1.5;}
+a.email-link{color:var(--accent);font-size:13px;font-weight:600;}
+.report-section{margin-bottom:16px;}
+.report-section h4{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.report-row{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:4px;font-size:12px;margin-bottom:3px;background:var(--bg3);}
+.report-row .key{color:var(--text2);}
+.report-row .val{color:#fff;font-weight:700;text-align:right;margin-left:12px;}
+.report-row.alert{background:#2a1800;}
+.report-row.alert .key{color:var(--warn);}
+.report-row.alert .val{color:var(--warn);}
+.auto-badge{font-size:10px;background:#1a2a1a;color:#50e898;border:1px solid #1a6030;border-radius:4px;padding:1px 6px;margin-left:6px;font-weight:700;}
+.status-bar{background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--text3);text-align:center;}
+.status-bar.error{background:#2a1010;border-color:var(--danger-border);color:var(--danger-text);}
+.status-bar.saving{color:var(--warn);}
+</style>
+</head>
+<body>
+
+<div id="status-bar" class="status-bar">Loading data...</div>
+
+<div id="main-content" style="display:none;">
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('pipeline',this)">Pipeline Tracker</button>
+  <button class="tab-btn" onclick="switchTab('field',this)">Field Inventory</button>
+  <button class="tab-btn" onclick="switchTab('reports',this)">Reports</button>
+</div>
+
+<div id="tab-pipeline" class="tab-pane active">
+  <div class="notify-bar">
+    <span class="label">Notify:</span>
+    <button class="notify-btn" onclick="notifyPerson('Shea','shea@drivewyze.com','WIM Kit')">Shea -- WIM Kit config</button>
+    <button class="notify-btn" onclick="notifyPerson('Daniel','daniel@drivewyze.com','Modem')">Daniel -- Modem config</button>
+  </div>
+  <div class="summary-cards" id="pipeline-summary"></div>
+  <div class="toolbar">
+    <input type="text" id="p-search" placeholder="Search..." style="width:130px;" oninput="renderPipeline()">
+    <select id="p-filter" onchange="renderPipeline()">
+      <option value="">All statuses</option>
+      <option>BOM Submitted</option><option>Approved</option><option>PO/SO Created</option>
+      <option>Warehouse Pulled</option><option>Pending Config</option><option>Ready to Ship</option><option>Shipped to Field</option>
+    </select>
+    <select id="p-type" onchange="renderPipeline()">
+      <option value="">All types</option><option>WIM Kit</option><option>Modem</option><option>Workstation</option>
+    </select>
+    <select id="p-trainer" onchange="renderPipeline()"><option value="">All trainers</option></select>
+    <label class="toggle-label"><input type="checkbox" id="p-show-shipped" onchange="renderPipeline()"> Show shipped</label>
+    <button class="primary" onclick="openPipelineModal()">+ Add Item</button>
+    <button class="secondary" onclick="loadData()">Refresh</button>
+  </div>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr>
+        <th>Type</th><th>Intended Site</th><th>Intended Trainer</th><th>Serial #</th><th>Model</th>
+        <th>ServiceNow Case</th><th>UPS Tracking</th><th>Status</th><th>BOM Date</th><th>Last Updated</th><th>Notes</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="pipeline-tbody"></tbody>
+    </table>
+    <div id="pipeline-empty" class="empty-state" style="display:none;">No items yet. Click + Add Item to get started.</div>
+  </div>
+</div>
+
+<div id="tab-field" class="tab-pane">
+  <div class="summary-cards" id="field-summary"></div>
+  <div class="toolbar">
+    <input type="text" id="f-search" placeholder="Search trainer, site, serial..." style="width:200px;" oninput="renderField()">
+    <select id="f-trainer" onchange="renderField()"><option value="">All trainers</option></select>
+    <select id="f-type2" onchange="renderField()">
+      <option value="">All types</option><option>WIM Kit</option><option>Modem</option><option>Workstation</option>
+    </select>
+    <label class="toggle-label"><input type="checkbox" id="f-show-installed" onchange="renderField()"> Show installed</label>
+    <button class="primary" onclick="openFieldModal()">+ Add Device</button>
+    <button class="secondary" onclick="loadData()">Refresh</button>
+  </div>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead><tr>
+        <th>Serial #</th><th>Type / Model</th><th>Trainer</th>
+        <th>Configured For</th><th>Current Site</th><th>Status</th>
+        <th>UPS Tracking</th><th>Shipped</th><th>Installed</th><th>Notes</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="field-tbody"></tbody>
+    </table>
+    <div id="field-empty" class="empty-state" style="display:none;">No field devices tracked yet.</div>
+  </div>
+</div>
+
+<div id="tab-reports" class="tab-pane">
+  <div class="toolbar" style="margin-bottom:12px;">
+    <button class="primary" onclick="renderReports()">Refresh</button>
+    <button class="secondary" onclick="exportCSV()">Export to CSV</button>
+  </div>
+  <div id="report-body"></div>
+</div>
+</div>
+
+<!-- PIPELINE MODAL -->
+<div class="modal-overlay" id="pipeline-modal" onclick="closeOnOverlay(event,'pipeline-modal')">
+  <div class="modal-box">
+    <h3 id="pm-title">Add Pipeline Item</h3>
+    <div class="two-col">
+      <div class="field-row"><label>Type *</label>
+        <select id="pm-type" onchange="updateSerialRequirement()">
+          <option>WIM Kit</option><option>Modem</option><option>Workstation</option>
+        </select>
+      </div>
+      <div class="field-row"><label>Intended Trainer</label>
+        <select id="pm-trainer"><option value="">-- Select trainer --</option></select>
+      </div>
+    </div>
+    <div class="field-row"><label>Intended Site *</label><input id="pm-site" placeholder="e.g. Haugan WB"></div>
+    <div class="section-divider">Device Info</div>
+    <div class="two-col">
+      <div class="field-row">
+        <label id="pm-serial-label">Serial #</label>
+        <input id="pm-serial">
+        <div class="field-hint" id="pm-serial-hint"></div>
+      </div>
+      <div class="field-row"><label>Model</label><input id="pm-model" placeholder="e.g. RT7, IBR900, Chromebox"></div>
+    </div>
+    <div class="section-divider">Case and Shipping</div>
+    <div class="two-col">
+      <div class="field-row"><label>ServiceNow Case #</label><input id="pm-snow" placeholder="e.g. SDC0003416"></div>
+      <div class="field-row"><label>ServiceNow URL</label><input id="pm-snowurl" placeholder="Paste full URL"></div>
+    </div>
+    <div class="field-row">
+      <label>UPS Tracking #</label>
+      <input id="pm-ups" placeholder="1Z...">
+      <div class="field-hint">Becomes a clickable link in both tabs.</div>
+    </div>
+    <div class="section-divider">Status</div>
+    <div class="two-col">
+      <div class="field-row"><label>Status</label>
+        <select id="pm-status">
+          <option>BOM Submitted</option><option>Approved</option><option>PO/SO Created</option>
+          <option>Warehouse Pulled</option><option>Pending Config</option><option>Ready to Ship</option><option>Shipped to Field</option>
+        </select>
+      </div>
+      <div class="field-row"><label>BOM Submitted Date</label><input type="date" id="pm-bom"></div>
+    </div>
+    <div class="field-row"><label>Notes</label><textarea id="pm-notes"></textarea></div>
+    <div class="modal-footer">
+      <button class="secondary" onclick="document.getElementById('pipeline-modal').classList.remove('open')">Cancel</button>
+      <button class="primary" onclick="savePipelineModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIELD MODAL -->
+<div class="modal-overlay" id="field-modal" onclick="closeOnOverlay(event,'field-modal')">
+  <div class="modal-box">
+    <h3 id="fm-title">Add Field Device</h3>
+    <div class="field-row">
+      <label id="fm-serial-label">Serial number</label>
+      <input id="fm-serial">
+      <div class="field-hint" id="fm-serial-hint"></div>
+    </div>
+    <div class="two-col">
+      <div class="field-row"><label>Type</label>
+        <select id="fm-type" onchange="updateFMSerialLabel()">
+          <option>WIM Kit</option><option>Modem</option><option>Workstation</option>
+        </select>
+      </div>
+      <div class="field-row"><label>Model</label><input id="fm-model"></div>
+    </div>
+    <div class="field-row"><label>Trainer *</label><select id="fm-trainer"><option value="">-- Select trainer --</option></select></div>
+    <div class="two-col">
+      <div class="field-row"><label>Configured for (intended site)</label><input id="fm-conf"></div>
+      <div class="field-row"><label>Current site (blank if same)</label><input id="fm-cur"></div>
+    </div>
+    <div class="two-col">
+      <div class="field-row"><label>Status</label>
+        <select id="fm-status"><option>In Field</option><option>Relocated</option><option>Returned</option><option>Installed</option></select>
+      </div>
+      <div class="field-row"><label>Date shipped from Edmonton</label><input type="date" id="fm-shipped"></div>
+    </div>
+    <div class="field-row">
+      <label>Installed Date</label>
+      <input type="date" id="fm-installed">
+      <div class="field-hint">Set when device is confirmed live at site. Record will be grayed out.</div>
+    </div>
+    <div class="field-row">
+      <label>UPS Tracking #</label>
+      <input id="fm-ups" placeholder="1Z...">
+      <div class="field-hint">Auto-populated from pipeline. Edit here if needed.</div>
+    </div>
+    <div class="field-row"><label>Notes</label><textarea id="fm-notes"></textarea></div>
+    <div class="modal-footer">
+      <button class="secondary" onclick="document.getElementById('field-modal').classList.remove('open')">Cancel</button>
+      <button class="primary" onclick="saveFieldModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFY -->
+<div class="notify-overlay" id="notify-overlay" onclick="closeOnOverlay(event,'notify-overlay')">
+  <div class="notify-box">
+    <h3 id="notify-title">Notify</h3>
+    <div id="notify-body"></div>
+    <div class="modal-footer">
+      <button class="secondary" onclick="document.getElementById('notify-overlay').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIGURATION -- paste your GitHub token on the next line
+// Replace YOUR_TOKEN_HERE with your actual token
+// ============================================================
+var GITHUB_TOKEN = 'placeholder';
+var GITHUB_OWNER = 'bestpass';
+var GITHUB_REPO = 'pipeline-tracker';
+var DATA_FILE = 'data.json';
+var API_URL = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/contents/' + DATA_FILE;
+
+// ============================================================
+// DATA
+// ============================================================
+var pD = [];
+var fD = [];
+var pEid = null;
+var fEid = null;
+var fileSha = null; // GitHub requires SHA to update a file
+
+var PS = ['BOM Submitted','Approved','PO/SO Created','Warehouse Pulled','Pending Config','Ready to Ship','Shipped to Field'];
+var FM = {'In Field':'badge-field','Relocated':'badge-relocated','Returned':'badge-returned','Installed':'badge-installed'};
+var TRAINERS = ['Todd James','Janis McWilliam','Rick Koontz','John Samis','Rob Nichols','Brian Howard','Kendell Jackson','Doug Hatch','Kim Valenzuela','Shannon Ratliff','Jeff Berezanski'];
+
+// ============================================================
+// GITHUB API HELPERS
+// ============================================================
+function ghHeaders() {
+  return {
+    'Authorization': 'token ' + GITHUB_TOKEN,
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json'
+  };
+}
+
+function loadData() {
+  setStatus('Loading data...');
+  fetch(API_URL + '?t=' + Date.now(), {headers: ghHeaders()})
+    .then(function(r) {
+      if(r.status === 404) {
+        // File does not exist yet -- start fresh
+        fileSha = null;
+        pD = []; fD = [];
+        clearStatus();
+        render();
+        return null;
+      }
+      return r.json();
+    })
+    .then(function(data) {
+      if(!data) return;
+      if(!data.content){
+        // File exists but content is missing or empty -- start fresh
+        fileSha = data.sha || null;
+        pD = []; fD = [];
+        clearStatus();
+        render();
+        return;
+      }
+      fileSha = data.sha;
+      var decoded = atob(data.content.replace(/\n/g, ''));
+      var content = decoded ? JSON.parse(decoded) : {pipeline:[],field:[]};
+      pD = content.pipeline || [];
+      fD = content.field || [];
+      clearStatus();
+      render();
+    })
+    .catch(function(err) {
+      setStatus('Could not load data. Check your token and repo settings. Error: ' + err.message, true);
+    });
+}
+
+function saveData() {
+  setStatus('Saving...', false, true);
+  var content = {pipeline: pD, field: fD};
+  var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))));
+  var body = {
+    message: 'Update tracker data',
+    content: encoded
+  };
+  if(fileSha) body.sha = fileSha;
+  return fetch(API_URL, {
+    method: 'PUT',
+    headers: ghHeaders(),
+    body: JSON.stringify(body)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    fileSha = data.content.sha;
+    clearStatus();
+  })
+  .catch(function(err) {
+    setStatus('Save failed: ' + err.message, true);
+    throw err;
+  });
+}
+
+// ============================================================
+// STATUS BAR
+// ============================================================
+function setStatus(msg, isError, isSaving) {
+  var bar = document.getElementById('status-bar');
+  bar.textContent = msg;
+  bar.className = 'status-bar' + (isError ? ' error' : '') + (isSaving ? ' saving' : '');
+  bar.style.display = 'block';
+}
+function clearStatus() {
+  var bar = document.getElementById('status-bar');
+  bar.style.display = 'none';
+  document.getElementById('main-content').style.display = 'block';
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function today() { return new Date().toISOString().slice(0, 10); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function trainerOptions(sel) {
+  return '<option value="">-- Select trainer --</option>' + TRAINERS.map(function(t) {
+    return '<option value="'+t+'"'+(t===sel?' selected':'')+'>'+t+'</option>';
+  }).join('');
+}
+function buildUpsUrl(t) { return t ? 'https://www.ups.com/track?tracknum=' + encodeURIComponent(t.trim()) : ''; }
+function upsLink(tracking) { return tracking ? '<a class="ups-link" href="'+esc(buildUpsUrl(tracking))+'" target="_blank" rel="noopener">'+esc(tracking)+'</a>' : ''; }
+
+function switchTab(t, btn) {
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('tab-'+t).classList.add('active');
+  btn.classList.add('active');
+  if(t==='reports') renderReports();
+}
+
+function render() { renderPipeline(); renderField(); renderPS(); renderFS(); updateFT(); populatePT(); }
+
+function populatePT() {
+  var sel = document.getElementById('p-trainer'); var cur = sel.value;
+  sel.innerHTML = '<option value="">All trainers</option>' + TRAINERS.map(function(t) {
+    return '<option value="'+t+'"'+(t===cur?' selected':'')+'>'+t+'</option>';
+  }).join('');
+}
+
+function renderPS() {
+  var c = {}; PS.forEach(function(s){c[s]=0;}); pD.forEach(function(d){c[d.status]=(c[d.status]||0)+1;});
+  var warn = ['Pending Config','Ready to Ship'];
+  document.getElementById('pipeline-summary').innerHTML =
+    PS.filter(function(s){return s!=='Shipped to Field';}).map(function(s){
+      return '<div class="summary-card"><div class="num'+(warn.indexOf(s)>-1&&c[s]>0?' warn':'')+'">'+(c[s]||0)+'</div><div class="lbl">'+s+'</div></div>';
+    }).join('') + '<div class="summary-card"><div class="num" style="color:#555566;">'+(c['Shipped to Field']||0)+'</div><div class="lbl">Shipped</div></div>';
+}
+
+function renderFS() {
+  var wim=fD.filter(function(d){return d.type==='WIM Kit';}).length;
+  var mod=fD.filter(function(d){return d.type==='Modem';}).length;
+  var ws=fD.filter(function(d){return d.type==='Workstation';}).length;
+  var rel=fD.filter(function(d){return d.status==='Relocated';}).length;
+  var inst=fD.filter(function(d){return !!d.installedDate;}).length;
+  var tr=[...new Set(fD.map(function(d){return d.trainer;}).filter(Boolean))].length;
+  var ms=fD.filter(function(d){return d.type==='Modem'&&!d.serial;}).length;
+  document.getElementById('field-summary').innerHTML =
+    '<div class="summary-card"><div class="num">'+fD.length+'</div><div class="lbl">Total Devices</div></div>'+
+    '<div class="summary-card"><div class="num">'+wim+'</div><div class="lbl">WIM Kits</div></div>'+
+    '<div class="summary-card"><div class="num">'+mod+'</div><div class="lbl">Modems</div></div>'+
+    '<div class="summary-card"><div class="num">'+ws+'</div><div class="lbl">Workstations</div></div>'+
+    '<div class="summary-card"><div class="num">'+tr+'</div><div class="lbl">Trainers</div></div>'+
+    '<div class="summary-card"><div class="num" style="color:#50e898;">'+inst+'</div><div class="lbl">Installed</div></div>'+
+    '<div class="summary-card"><div class="num'+(rel>0?' warn':'')+'">'+ rel+'</div><div class="lbl">Relocated</div></div>'+
+    (ms>0?'<div class="summary-card"><div class="num warn">'+ms+'</div><div class="lbl">Missing Serial</div></div>':'');
+}
+
+function updateFT() {
+  var sel=document.getElementById('f-trainer'); var cur=sel.value;
+  sel.innerHTML='<option value="">All trainers</option>'+TRAINERS.map(function(t){
+    var has=fD.some(function(d){return d.trainer===t;});
+    return has?'<option value="'+t+'"'+(t===cur?' selected':'')+'>'+t+'</option>':'';
+  }).join('');
+}
+
+function renderPipeline() {
+  var q=(document.getElementById('p-search').value||'').toLowerCase();
+  var sf=document.getElementById('p-filter').value;
+  var tf=document.getElementById('p-type').value;
+  var tr=document.getElementById('p-trainer').value;
+  var showShipped=document.getElementById('p-show-shipped').checked;
+  var data=pD.filter(function(d){
+    if(!showShipped&&d.status==='Shipped to Field')return false;
+    if(sf&&d.status!==sf)return false;
+    if(tf&&d.type!==tf)return false;
+    if(tr&&d.trainer!==tr)return false;
+    if(q&&![d.site,d.trainer,d.notes,d.type,d.snow,d.serial,d.ups].join(' ').toLowerCase().includes(q))return false;
+    return true;
+  });
+  var empty=document.getElementById('pipeline-empty');
+  var tbody=document.getElementById('pipeline-tbody');
+  if(!data.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML=data.map(function(d){
+    var shipped=d.status==='Shipped to Field';
+    var opts=PS.map(function(s){return '<option value="'+s+'"'+(s===d.status?' selected':'')+'>'+s+'</option>';}).join('');
+    var snowCell=d.snow&&d.snowUrl?'<a class="snow-link" href="'+esc(d.snowUrl)+'" target="_blank" rel="noopener">'+esc(d.snow)+'</a>':(d.snow?'<span class="snow-nolink">'+esc(d.snow)+'</span>':'');
+    var msFlag=d.type==='Modem'&&!d.serial&&!shipped?'<div class="missing-serial">needs serial</div>':'';
+    var linkedField=fD.find(function(f){return f.pipelineId===d.id;});
+    var autoTag=linkedField?'<span class="auto-badge">synced</span>':'';
+    return '<tr class="'+(shipped?'shipped':'')+'">'
+      +'<td class="bold">'+esc(d.type)+'</td>'
+      +'<td class="bold">'+esc(d.site)+'</td>'
+      +'<td>'+esc(d.trainer||'')+'</td>'
+      +'<td><span class="mono">'+esc(d.serial||'')+'</span>'+msFlag+'</td>'
+      +'<td>'+esc(d.model||'')+'</td>'
+      +'<td>'+snowCell+'</td>'
+      +'<td>'+upsLink(d.ups)+'</td>'
+      +'<td>'+(shipped?'<span class="badge badge-shipped">Shipped</span>'+autoTag:'<select class="status-select" onchange="updatePipelineStatus(\''+d.id+'\',this.value)">'+opts+'</select>')+'</td>'
+      +'<td style="color:#6a6a88;">'+esc(d.bomDate||'')+'</td>'
+      +'<td style="color:#6a6a88;">'+esc(d.updated||'')+'</td>'
+      +'<td style="max-width:100px;white-space:normal;color:#6a6a88;">'+esc(d.notes||'')+'</td>'
+      +'<td><div class="actions-cell">'
+        +'<button class="secondary sm" onclick="editP(\''+d.id+'\')">Edit</button>'
+        +'<button class="danger" onclick="delP(\''+d.id+'\')">Remove</button>'
+      +'</div></td></tr>';
+  }).join('');
+}
+
+function renderField() {
+  var q=(document.getElementById('f-search').value||'').toLowerCase();
+  var tf=document.getElementById('f-trainer').value;
+  var tp=document.getElementById('f-type2').value;
+  var showInstalled=document.getElementById('f-show-installed').checked;
+  var data=fD.filter(function(d){
+    if(!showInstalled&&d.installedDate)return false;
+    if(tf&&d.trainer!==tf)return false;
+    if(tp&&d.type!==tp)return false;
+    if(q&&![d.serial,d.model,d.trainer,d.configuredFor,d.currentSite,d.notes,d.ups].join(' ').toLowerCase().includes(q))return false;
+    return true;
+  });
+  var empty=document.getElementById('field-empty');
+  var tbody=document.getElementById('field-tbody');
+  if(!data.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML=data.map(function(d){
+    var rel=d.configuredFor&&d.currentSite&&d.configuredFor!==d.currentSite;
+    var ms=d.type==='Modem'&&!d.serial;
+    var isInstalled=!!d.installedDate;
+    var serialCell=ms?'<span style="color:var(--warn);font-weight:700;">MISSING</span><div class="missing-serial">Modem -- serial required</div>':'<span class="mono">'+esc(d.serial||'')+'</span>';
+    var fromPipeline=d.pipelineId?'<div style="font-size:10px;color:#50e898;margin-top:2px;">from pipeline</div>':'';
+    var statusBadge=isInstalled?'<span class="badge badge-installed">Installed</span>':'<span class="badge '+(FM[d.status]||'badge-field')+'">'+esc(d.status)+'</span>';
+    return '<tr class="'+(isInstalled?'installed':'')+'">'
+      +'<td>'+serialCell+fromPipeline+'</td>'
+      +'<td class="bold">'+esc(d.type)+'<br><span style="color:#9090a8;font-size:11px;font-weight:400;">'+esc(d.model||'')+'</span></td>'
+      +'<td class="bold">'+esc(d.trainer)+'</td>'
+      +'<td>'+esc(d.configuredFor)+'</td>'
+      +'<td>'+esc(d.currentSite)+(rel?'<div class="relocated-flag">relocated</div>':'')+'</td>'
+      +'<td>'+statusBadge+'</td>'
+      +'<td>'+upsLink(d.ups)+'</td>'
+      +'<td style="color:#9090a8;">'+esc(d.shippedDate||'')+'</td>'
+      +'<td style="color:#9090a8;">'+esc(d.installedDate||'')+'</td>'
+      +'<td style="max-width:110px;white-space:normal;">'+esc(d.notes||'')+'</td>'
+      +'<td><div class="actions-cell">'
+        +'<button class="secondary sm" onclick="editF(\''+d.id+'\')">Edit</button>'
+        +'<button class="danger" onclick="delF(\''+d.id+'\')">Remove</button>'
+      +'</div></td></tr>';
+  }).join('');
+}
+
+// ============================================================
+// STATUS UPDATE
+// ============================================================
+function updatePipelineStatus(id, status) {
+  var item=pD.find(function(d){return d.id===id;});
+  if(!item)return;
+  item.status=status;
+  item.updated=today();
+  saveData().then(function(){
+    if(status==='Shipped to Field') syncToField(item);
+    if(status==='Pending Config'){
+      var n=item.type==='WIM Kit'?'Shea':'Daniel';
+      var e=item.type==='WIM Kit'?'shea@drivewyze.com':'daniel@drivewyze.com';
+      showNotifyItem(n,e,item);
+    }
+    render();
+  });
+}
+
+function syncToField(pipelineItem) {
+  var existing=fD.find(function(d){return d.pipelineId===pipelineItem.id;});
+  if(existing){
+    if(pipelineItem.serial)existing.serial=pipelineItem.serial;
+    if(pipelineItem.model)existing.model=pipelineItem.model;
+    existing.trainer=pipelineItem.trainer||existing.trainer;
+    existing.configuredFor=pipelineItem.site||existing.configuredFor;
+    if(!existing.currentSite||existing.currentSite===existing.configuredFor)existing.currentSite=pipelineItem.site||'';
+    existing.ups=pipelineItem.ups||existing.ups;
+  } else {
+    fD.push({
+      id:uid(), pipelineId:pipelineItem.id,
+      serial:pipelineItem.serial||'', type:pipelineItem.type,
+      model:pipelineItem.model||'', trainer:pipelineItem.trainer||'',
+      configuredFor:pipelineItem.site||'', currentSite:pipelineItem.site||'',
+      status:'In Field', shippedDate:today(),
+      ups:pipelineItem.ups||'', notes:pipelineItem.notes||''
+    });
+  }
+  saveData().then(function(){render();});
+}
+
+// ============================================================
+// DELETE
+// ============================================================
+function delP(id) {
+  if(!confirm('Remove this pipeline item?'))return;
+  var linked=fD.find(function(d){return d.pipelineId===id;});
+  pD=pD.filter(function(d){return d.id!==id;});
+  if(linked)fD=fD.filter(function(d){return d.pipelineId!==id;});
+  saveData().then(function(){render();});
+}
+function delF(id) {
+  if(!confirm('Remove this field device?'))return;
+  fD=fD.filter(function(d){return d.id!==id;});
+  saveData().then(function(){render();});
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function updateSerialRequirement(){
+  var type=document.getElementById('pm-type').value;
+  if(type==='Modem'){document.getElementById('pm-serial-label').textContent='Serial # (add once Daniel configures)';document.getElementById('pm-serial-hint').textContent='You can save without a serial and edit later.';document.getElementById('pm-serial').placeholder='Available after configuration';}
+  else{document.getElementById('pm-serial-label').textContent='Serial #';document.getElementById('pm-serial-hint').textContent='';document.getElementById('pm-serial').placeholder='';}
+}
+function updateFMSerialLabel(){
+  var type=document.getElementById('fm-type').value;
+  if(type==='Modem'){document.getElementById('fm-serial-label').textContent='Serial # (add once Daniel configures)';document.getElementById('fm-serial-hint').textContent='You can save without a serial and edit later.';document.getElementById('fm-serial').placeholder='Available after configuration';}
+  else{document.getElementById('fm-serial-label').textContent='Serial #';document.getElementById('fm-serial-hint').textContent='';document.getElementById('fm-serial').placeholder='';}
+}
+
+function openPipelineModal(data){
+  pEid=data?data.id:null;
+  document.getElementById('pm-title').textContent=data?'Edit Pipeline Item':'Add Pipeline Item';
+  document.getElementById('pm-type').value=data?data.type:'WIM Kit';
+  document.getElementById('pm-trainer').innerHTML=trainerOptions(data?data.trainer:'');
+  document.getElementById('pm-site').value=data?data.site:'';
+  document.getElementById('pm-serial').value=data?data.serial:'';
+  document.getElementById('pm-model').value=data?data.model:'';
+  document.getElementById('pm-snow').value=data?data.snow:'';
+  document.getElementById('pm-snowurl').value=data?data.snowUrl:'';
+  document.getElementById('pm-ups').value=data?data.ups:'';
+  document.getElementById('pm-status').value=data?data.status:'BOM Submitted';
+  document.getElementById('pm-bom').value=data?data.bomDate:'';
+  document.getElementById('pm-notes').value=data?data.notes:'';
+  updateSerialRequirement();
+  document.getElementById('pipeline-modal').classList.add('open');
+}
+function openFieldModal(data){
+  fEid=data?data.id:null;
+  document.getElementById('fm-title').textContent=data?'Edit Field Device':'Add Field Device';
+  document.getElementById('fm-serial').value=data?data.serial:'';
+  document.getElementById('fm-type').value=data?data.type:'WIM Kit';
+  document.getElementById('fm-model').value=data?data.model:'';
+  document.getElementById('fm-trainer').innerHTML=trainerOptions(data?data.trainer:'');
+  document.getElementById('fm-conf').value=data?data.configuredFor:'';
+  document.getElementById('fm-cur').value=data&&data.currentSite!==data.configuredFor?data.currentSite:'';
+  document.getElementById('fm-status').value=data?data.status:'In Field';
+  document.getElementById('fm-shipped').value=data?data.shippedDate:'';
+  document.getElementById('fm-installed').value=data?data.installedDate:'';
+  document.getElementById('fm-ups').value=data?data.ups:'';
+  document.getElementById('fm-notes').value=data?data.notes:'';
+  updateFMSerialLabel();
+  document.getElementById('field-modal').classList.add('open');
+}
+function editP(id){var i=pD.find(function(d){return d.id===id;});if(i)openPipelineModal(i);}
+function editF(id){var i=fD.find(function(d){return d.id===id;});if(i)openFieldModal(i);}
+
+function savePipelineModal(){
+  var site=document.getElementById('pm-site').value.trim();
+  if(!site){alert('Intended site is required.');return;}
+  var snowUrl=document.getElementById('pm-snowurl').value.trim();
+  if(snowUrl&&!snowUrl.startsWith('http'))snowUrl='https://'+snowUrl;
+  var isNew=!pEid;
+  var obj={
+    id:pEid||uid(), type:document.getElementById('pm-type').value,
+    trainer:document.getElementById('pm-trainer').value, site:site,
+    serial:document.getElementById('pm-serial').value.trim(),
+    model:document.getElementById('pm-model').value.trim(),
+    snow:document.getElementById('pm-snow').value.trim(), snowUrl:snowUrl,
+    ups:document.getElementById('pm-ups').value.trim(),
+    status:document.getElementById('pm-status').value,
+    bomDate:document.getElementById('pm-bom').value,
+    notes:document.getElementById('pm-notes').value.trim(),
+    updated:today()
+  };
+  if(isNew){pD.push(obj);}
+  else{var idx=pD.findIndex(function(d){return d.id===pEid;});if(idx>-1)pD[idx]=obj;}
+  // sync linked field record if editing
+  if(!isNew){
+    var linked=fD.find(function(d){return d.pipelineId===obj.id;});
+    if(linked){
+      if(obj.serial)linked.serial=obj.serial;
+      if(obj.model)linked.model=obj.model;
+      linked.trainer=obj.trainer||linked.trainer;
+      linked.ups=obj.ups||linked.ups;
+    }
+  }
+  document.getElementById('pipeline-modal').classList.remove('open');
+  saveData().then(function(){
+    if(obj.status==='Shipped to Field')syncToField(obj);
+    else render();
+  });
+}
+
+function saveFieldModal(){
+  var serial=document.getElementById('fm-serial').value.trim();
+  var trainer=document.getElementById('fm-trainer').value;
+  var type=document.getElementById('fm-type').value;
+  if(!trainer){alert('Trainer is required.');return;}
+  if(type==='Modem'&&!serial){if(!confirm('This modem has no serial number yet. It will be flagged until you add one. Save anyway?'))return;}
+  var conf=document.getElementById('fm-conf').value.trim();
+  var cur=document.getElementById('fm-cur').value.trim()||conf;
+  var existing=fEid?fD.find(function(d){return d.id===fEid;}):null;
+  var obj={
+    id:fEid||uid(), serial:serial, type:type,
+    model:document.getElementById('fm-model').value.trim(),
+    trainer:trainer, configuredFor:conf, currentSite:cur,
+    status:document.getElementById('fm-status').value,
+    shippedDate:document.getElementById('fm-shipped').value,
+    installedDate:document.getElementById('fm-installed').value,
+    ups:document.getElementById('fm-ups').value.trim(),
+    notes:document.getElementById('fm-notes').value.trim(),
+    pipelineId:existing?existing.pipelineId:''
+  };
+  if(fEid){var idx=fD.findIndex(function(d){return d.id===fEid;});if(idx>-1)fD[idx]=obj;}
+  else{fD.push(obj);}
+  document.getElementById('field-modal').classList.remove('open');
+  saveData().then(function(){render();});
+}
+
+function closeOnOverlay(e,id){if(e.target===document.getElementById(id))document.getElementById(id).classList.remove('open');}
+
+// ============================================================
+// REPORTS
+// ============================================================
+function renderReports(){
+  var now=new Date();
+  function daysSince(ds){if(!ds)return null;return Math.floor((now-new Date(ds))/86400000);}
+  var bySt={};PS.forEach(function(s){bySt[s]=[];});pD.forEach(function(d){if(bySt[d.status])bySt[d.status].push(d);});
+  var stale=pD.filter(function(d){if(d.status==='Shipped to Field')return false;var ds=daysSince(d.updated);return ds!==null&&ds>=7;});
+  var pendingConfig=pD.filter(function(d){return d.status==='Pending Config';});
+  var readyShip=pD.filter(function(d){return d.status==='Ready to Ship';});
+  var byTrainer={};fD.forEach(function(d){if(!byTrainer[d.trainer])byTrainer[d.trainer]=[];byTrainer[d.trainer].push(d);});
+  var relocated=fD.filter(function(d){return d.configuredFor&&d.currentSite&&d.configuredFor!==d.currentSite&&!d.installedDate;});
+  var ms=fD.filter(function(d){return d.type==='Modem'&&!d.serial;});
+  var html='';
+  html+='<div class="report-section"><h4>Pipeline Snapshot</h4>';
+  PS.forEach(function(s){var count=bySt[s].length;var isWarn=(s==='Pending Config'||s==='Ready to Ship')&&count>0;html+='<div class="report-row'+(isWarn?' alert':'')+'"><span class="key">'+s+'</span><span class="val">'+count+' item'+(count!==1?'s':'')+'</span></div>';});
+  html+='</div>';
+  html+='<div class="report-section"><h4>Needs Attention</h4>';
+  var any=stale.length||pendingConfig.length||readyShip.length||ms.length;
+  if(!any){html+='<div class="report-row"><span class="key">No items flagged</span><span class="val"></span></div>';}
+  stale.forEach(function(d){var ds=daysSince(d.updated);html+='<div class="report-row alert"><span class="key">'+esc(d.type)+' for '+esc(d.site)+' -- no update in '+ds+' days</span><span class="val">'+esc(d.status)+'</span></div>';});
+  pendingConfig.forEach(function(d){html+='<div class="report-row alert"><span class="key">'+esc(d.type)+' for '+esc(d.site)+' -- waiting on '+(d.type==='WIM Kit'?'Shea':'Daniel')+'</span><span class="val">Pending Config</span></div>';});
+  readyShip.forEach(function(d){html+='<div class="report-row alert"><span class="key">'+esc(d.type)+' for '+esc(d.site)+' -- ready but not yet shipped</span><span class="val">Ready to Ship</span></div>';});
+  ms.forEach(function(d){html+='<div class="report-row alert"><span class="key">Modem for '+esc(d.trainer)+' ('+esc(d.configuredFor)+') -- no serial</span><span class="val">Needs serial</span></div>';});
+  html+='</div>';
+  html+='<div class="report-section"><h4>Field Inventory by Trainer</h4>';
+  var tList=TRAINERS.filter(function(t){return byTrainer[t];});
+  if(!tList.length){html+='<div class="report-row"><span class="key">No field devices tracked yet</span><span class="val"></span></div>';}
+  tList.forEach(function(t){
+    var items=byTrainer[t];
+    var active=items.filter(function(d){return !d.installedDate;});
+    var wim=active.filter(function(d){return d.type==='WIM Kit';}).length;
+    var mod=active.filter(function(d){return d.type==='Modem';}).length;
+    var ws=active.filter(function(d){return d.type==='Workstation';}).length;
+    var inst=items.filter(function(d){return !!d.installedDate;}).length;
+    var parts=[wim+' WIM Kit'+(wim!==1?'s':''),mod+' Modem'+(mod!==1?'s':'')];
+    if(ws>0)parts.push(ws+' Workstation'+(ws!==1?'s':''));
+    if(inst>0)parts.push(inst+' installed');
+    html+='<div class="report-row"><span class="key">'+esc(t)+'</span><span class="val">'+parts.join(', ')+'</span></div>';
+  });
+  html+='</div>';
+  html+='<div class="report-section"><h4>Relocated Devices</h4>';
+  if(!relocated.length){html+='<div class="report-row"><span class="key">No relocated devices</span><span class="val"></span></div>';}
+  relocated.forEach(function(d){html+='<div class="report-row alert"><span class="key">'+esc(d.serial||'No serial')+' ('+esc(d.trainer)+')</span><span class="val">'+esc(d.configuredFor)+' &rarr; '+esc(d.currentSite)+'</span></div>';});
+  html+='</div>';
+  document.getElementById('report-body').innerHTML=html;
+}
+
+// ============================================================
+// CSV EXPORT
+// ============================================================
+function exportCSV(){
+  var rows=[['=== PIPELINE ==='],['Type','Site','Intended Trainer','Serial','Model','ServiceNow Case','UPS Tracking','Status','BOM Date','Last Updated','Notes']];
+  pD.forEach(function(d){rows.push([d.type,d.site,d.trainer||'',d.serial||'',d.model||'',d.snow||'',d.ups||'',d.status,d.bomDate||'',d.updated||'',d.notes||'']);});
+  rows.push([],['=== FIELD INVENTORY ==='],['Serial','Type','Model','Trainer','Configured For','Current Site','Status','UPS Tracking','Shipped','Installed','Notes']);
+  fD.forEach(function(d){rows.push([d.serial||'MISSING',d.type,d.model||'',d.trainer,d.configuredFor||'',d.currentSite||'',d.status,d.ups||'',d.shippedDate||'',d.installedDate||'',d.notes||'']);});
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var blob=new Blob([csv],{type:'text/csv'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='wimkit_tracker_'+today()+'.csv';a.click();
+}
+
+// ============================================================
+// NOTIFY
+// ============================================================
+function notifyPerson(name,email,type){
+  var pending=pD.filter(function(d){return d.status==='Pending Config'&&d.type===type;});
+  var list=pending.length?pending.map(function(d){return '- '+d.type+' for '+d.site+(d.trainer?' / '+d.trainer:'');}).join('\n'):'No items currently pending configuration.';
+  var slack='Hi '+name+', the following items are ready for your configuration:\n'+list+'\nPlease let me know when complete. Thanks!';
+  var subj=encodeURIComponent('Items ready for '+type+' configuration');
+  var body=encodeURIComponent('Hi '+name+',\n\nThe following items are ready for your configuration:\n\n'+list+'\n\nPlease let me know when complete.\n\nThanks,\nJoe');
+  showNotify(name,email,list,slack,subj,body);
+}
+function showNotifyItem(name,email,item){
+  var desc=item.type+' for '+item.site+(item.trainer?' / '+item.trainer:'');
+  var slack='Hi '+name+', "'+desc+'" is now ready for your configuration. Please let me know when done. Thanks!';
+  var subj=encodeURIComponent('Ready for config: '+item.type+' for '+item.site);
+  var body=encodeURIComponent('Hi '+name+',\n\n'+desc+' is now ready for your configuration.\n\nPlease let me know when complete.\n\nThanks,\nJoe');
+  showNotify(name,email,desc,slack,subj,body);
+}
+function showNotify(name,email,list,slack,subj,body){
+  document.getElementById('notify-title').textContent='Notify '+name;
+  document.getElementById('notify-body').innerHTML=
+    '<div class="section-label">Items</div><pre class="msg-box">'+esc(list)+'</pre>'+
+    '<div class="section-label">Slack message -- copy and paste</div><pre class="msg-box">'+esc(slack)+'</pre>'+
+    '<div class="section-label">Email</div><a class="email-link" href="mailto:'+email+'?subject='+subj+'&body='+body+'">Open email to '+esc(name)+' in your mail client</a>';
+  document.getElementById('notify-overlay').classList.add('open');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+loadData();
+</script>
+</body>
+</html>
